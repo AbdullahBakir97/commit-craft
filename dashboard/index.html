@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Commit Craft - Commit Message Quality</title>
+  <style>
+    :root { --bg: #0d1117; --surface: #161b22; --border: #30363d; --text: #e6edf3; --muted: #8b949e; --accent: #f78166; --green: #3fb950; --yellow: #d29922; --red: #f85149; --purple: #bc8cff; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+    .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+    header { border-bottom: 1px solid var(--border); padding: 20px 0; }
+    header .container { display: flex; align-items: center; justify-content: space-between; }
+    .logo { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 600; color: var(--text); text-decoration: none; }
+    .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent), var(--yellow)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; }
+    .nav-links a:hover { color: var(--text); }
+    .hero { text-align: center; padding: 80px 0 60px; }
+    .hero h1 { font-size: 48px; font-weight: 800; line-height: 1.2; margin-bottom: 16px; }
+    .hero h1 span { background: linear-gradient(135deg, var(--accent), var(--yellow)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero p { font-size: 20px; color: var(--muted); max-width: 600px; margin: 0 auto 32px; }
+    .btn { padding: 12px 28px; border-radius: 8px; font-size: 16px; font-weight: 600; text-decoration: none; transition: all 0.2s; border: none; cursor: pointer; display: inline-block; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #f99a85; }
+    .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .cta-group { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+    .demo { padding: 60px 0; border-top: 1px solid var(--border); }
+    .demo h2 { text-align: center; font-size: 28px; margin-bottom: 8px; }
+    .demo .subtitle { text-align: center; color: var(--muted); margin-bottom: 32px; }
+    .demo-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+    .demo-input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text); font-family: 'SFMono-Regular', Consolas, monospace; font-size: 14px; resize: none; height: 48px; }
+    .demo-input:focus { outline: none; border-color: var(--accent); }
+    .demo-btn { background: var(--accent); color: #fff; padding: 10px 24px; border-radius: 6px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 12px; }
+
+    .result { margin-top: 24px; display: none; }
+    .result.active { display: block; }
+    .result-header { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+    .score-card { flex: 1; min-width: 140px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; }
+    .score-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 4px; }
+    .score-card .value { font-size: 32px; font-weight: 700; }
+    .tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-top: 4px; }
+    .tag-green { background: rgba(63,185,80,0.15); color: var(--green); }
+    .tag-yellow { background: rgba(210,153,34,0.15); color: var(--yellow); }
+    .tag-red { background: rgba(248,81,73,0.15); color: var(--red); }
+    .issues-list, .suggestions-list { list-style: none; margin-top: 8px; }
+    .issues-list li, .suggestions-list li { padding: 8px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 6px; font-size: 13px; }
+    .suggested-box { background: var(--bg); border: 1px solid var(--green); border-radius: 8px; padding: 12px; margin-top: 12px; font-family: monospace; font-size: 14px; color: var(--green); }
+
+    .examples { padding: 60px 0; border-top: 1px solid var(--border); }
+    .examples h2 { text-align: center; font-size: 28px; margin-bottom: 32px; }
+    .example-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .example-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+    .example-card.good { border-left: 3px solid var(--green); }
+    .example-card.bad { border-left: 3px solid var(--red); }
+    .example-card h4 { font-size: 14px; margin-bottom: 8px; }
+    .example-card code { font-size: 13px; color: var(--accent); }
+    .example-card .score { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+    .features { padding: 60px 0; border-top: 1px solid var(--border); }
+    .features h2 { text-align: center; font-size: 28px; margin-bottom: 32px; }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    .feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+    .feature-card .icon { font-size: 28px; margin-bottom: 8px; }
+    .feature-card h3 { font-size: 15px; margin-bottom: 6px; }
+    .feature-card p { font-size: 13px; color: var(--muted); }
+
+    footer { border-top: 1px solid var(--border); padding: 24px 0; text-align: center; color: var(--muted); font-size: 13px; }
+    footer a { color: var(--accent); text-decoration: none; }
+    @media (max-width: 768px) { .example-grid { grid-template-columns: 1fr; } .hero h1 { font-size: 32px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="#" class="logo"><div class="logo-icon">C</div>Commit Craft</a>
+      <nav class="nav-links">
+        <a href="#demo">Try It</a>
+        <a href="#examples">Examples</a>
+        <a href="#features">Features</a>
+        <a href="https://github.com/apps/commit-craft">Install</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>Craft perfect <span>commit messages</span></h1>
+        <p>A GitHub App that enforces conventional commits, scores message quality, and suggests improvements on every PR.</p>
+        <div class="cta-group">
+          <a href="https://github.com/apps/commit-craft" class="btn btn-primary">Install on GitHub</a>
+          <a href="#demo" class="btn btn-outline">Try the Demo</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="demo" id="demo">
+      <div class="container">
+        <h2>Analyze a Commit Message</h2>
+        <p class="subtitle">Paste a commit message to see how it scores</p>
+        <div class="demo-card">
+          <input class="demo-input" id="msgInput" placeholder="e.g. feat(auth): add OAuth2 login support" value="">
+          <button class="demo-btn" onclick="analyze()">Analyze</button>
+          <div class="result" id="result">
+            <div class="result-header">
+              <div class="score-card"><div class="label">Score</div><div class="value" id="scoreVal">0</div><span class="tag" id="scoreTag">-</span></div>
+              <div class="score-card"><div class="label">Format</div><div class="value" id="fmtVal" style="font-size:20px">-</div><span class="tag" id="fmtTag">-</span></div>
+              <div class="score-card"><div class="label">Type</div><div class="value" id="typeVal" style="font-size:20px">-</div></div>
+              <div class="score-card"><div class="label">Scope</div><div class="value" id="scopeVal" style="font-size:20px">-</div></div>
+            </div>
+            <div id="issuesDiv" style="display:none"><h4 style="margin-bottom:6px">Issues</h4><ul class="issues-list" id="issuesList"></ul></div>
+            <div id="suggestDiv" style="display:none"><h4 style="margin-bottom:6px">Suggestions</h4><ul class="suggestions-list" id="suggestList"></ul></div>
+            <div id="suggestedBox" style="display:none"><h4 style="margin-bottom:6px">Suggested Message</h4><div class="suggested-box" id="suggestedMsg"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="examples" id="examples">
+      <div class="container">
+        <h2>Good vs Bad Commits</h2>
+        <div class="example-grid">
+          <div class="example-card good"><h4>&#x2705; Excellent</h4><code>feat(auth): add OAuth2 login support</code><div class="score">Score: 95/100</div></div>
+          <div class="example-card bad"><h4>&#x274C; Poor</h4><code>fixed stuff</code><div class="score">Score: 15/100</div></div>
+          <div class="example-card good"><h4>&#x2705; Good</h4><code>fix: resolve crash on empty email input</code><div class="score">Score: 85/100</div></div>
+          <div class="example-card bad"><h4>&#x274C; Failing</h4><code>WIP</code><div class="score">Score: 5/100</div></div>
+          <div class="example-card good"><h4>&#x2705; Good</h4><code>docs(readme): update installation guide</code><div class="score">Score: 90/100</div></div>
+          <div class="example-card bad"><h4>&#x274C; Poor</h4><code>Updated the thing.</code><div class="score">Score: 20/100</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="features" id="features">
+      <div class="container">
+        <h2>Features</h2>
+        <div class="feature-grid">
+          <div class="feature-card"><div class="icon">&#x1F4CB;</div><h3>Conventional Commit Parsing</h3><p>Validates type(scope): description format with 11 supported types</p></div>
+          <div class="feature-card"><div class="icon">&#x1F4CA;</div><h3>Quality Scoring</h3><p>0-100 score based on format, length, mood, clarity, and completeness</p></div>
+          <div class="feature-card"><div class="icon">&#x1F4A1;</div><h3>Smart Suggestions</h3><p>Auto-suggests improved commit messages with proper formatting</p></div>
+          <div class="feature-card"><div class="icon">&#x2705;</div><h3>GitHub Checks</h3><p>Pass/fail status on every PR with detailed per-commit breakdown</p></div>
+          <div class="feature-card"><div class="icon">&#x2699;&#xFE0F;</div><h3>Configurable</h3><p>Per-repo .github/commit-craft.yml for thresholds, required types, and actions</p></div>
+          <div class="feature-card"><div class="icon">&#x1F4DD;</div><h3>Changelog Ready</h3><p>Clean conventional commits enable automatic changelog generation</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer><div class="container"><p>Commit Craft &mdash; Open source GitHub App &mdash; <a href="https://github.com/AbdullahBakir97/commit-craft">GitHub</a></p></div></footer>
+
+  <script>
+    const RE = /^(?<type>feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(?:\((?<scope>[^)]+)\))?(?<breaking>!)?:\s*(?<desc>.+)$/i;
+    const IMPERATIVE = /^(add|fix|update|remove|implement|create|delete|refactor|move|rename|improve|change|handle|set|use|enable|disable|replace|merge|split|extract|simplify|optimize|support|allow|prevent|ensure|validate|check|clean|bump|release|revert|apply|configure|deploy|migrate|convert|wrap|extend|override|reset|resolve|introduce|drop|reduce|increase)\b/i;
+    const TYPE_GUESS = {"fix":"fix","bug":"fix","patch":"fix","add":"feat","new":"feat","feature":"feat","implement":"feat","create":"feat","update":"chore","change":"chore","modify":"chore","remove":"chore","delete":"chore","refactor":"refactor","clean":"refactor","simplify":"refactor","move":"refactor","rename":"refactor","test":"test","doc":"docs","readme":"docs","comment":"docs","style":"style","format":"style","lint":"style","perf":"perf","optimize":"perf","speed":"perf","build":"build","deploy":"ci","ci":"ci","bump":"chore","release":"chore","merge":"chore","revert":"revert"};
+
+    function analyze() {
+      const msg = document.getElementById('msgInput').value.trim();
+      if (!msg) return;
+      const m = RE.exec(msg);
+      let score = 0, issues = [], suggestions = [], suggested = null;
+      const firstLine = msg.split('\n')[0];
+
+      if (m) {
+        score += 25; // conventional format
+        document.getElementById('fmtVal').textContent = 'Conventional';
+        document.getElementById('fmtTag').textContent = 'Valid'; document.getElementById('fmtTag').className = 'tag tag-green';
+        document.getElementById('typeVal').textContent = m.groups.type;
+        document.getElementById('scopeVal').textContent = m.groups.scope || 'none';
+
+        const desc = m.groups.desc;
+        if (desc.length >= 10 && desc.length <= 72) { score += 15; } else { if (desc.length < 10) { issues.push('Description too short (min 10 chars)'); } if (desc.length > 72) { issues.push('Description too long (max 72 chars)'); suggestions.push('Keep subject line under 72 characters'); } }
+        if (desc[0] === desc[0].toLowerCase()) { score += 5; } else { issues.push('Description should start with lowercase'); }
+        if (IMPERATIVE.test(desc)) { score += 10; } else { suggestions.push('Use imperative mood (e.g. "add" not "added")'); score += 3; }
+        if (!desc.endsWith('.')) { score += 5; } else { issues.push('Remove trailing period from description'); }
+        score += 10; // valid type
+        if (m.groups.scope) { score += 5; } else { suggestions.push('Consider adding a scope, e.g. feat(auth): ...'); }
+        if (msg.includes('\n\n')) { score += 5; } else if (['feat','fix'].includes(m.groups.type.toLowerCase())) { suggestions.push('Consider adding a body for feat/fix commits'); }
+        if (!msg.match(/^(wip|fixup|squash)/i)) { score += 10; }
+        if (!msg.startsWith('Merge ')) { score += 5; }
+        if (m.groups.breaking) { score += 5; }
+      } else {
+        document.getElementById('fmtVal').textContent = 'Non-standard';
+        document.getElementById('fmtTag').textContent = 'Invalid'; document.getElementById('fmtTag').className = 'tag tag-red';
+        document.getElementById('typeVal').textContent = '?';
+        document.getElementById('scopeVal').textContent = '-';
+        issues.push('Not in conventional commit format');
+        if (firstLine.length < 10) { issues.push('Message too short'); }
+        if (firstLine.length > 72) { issues.push('Subject line exceeds 72 characters'); }
+        if (firstLine.endsWith('.')) { issues.push('Remove trailing period'); }
+        if (firstLine[0] === firstLine[0].toUpperCase()) { issues.push('Start with lowercase'); }
+        if (/^(wip|fixup|squash)/i.test(msg)) { issues.push('WIP/fixup/squash commits should be cleaned up'); score -= 5; }
+        if (msg.startsWith('Merge ')) { score += 5; }
+        // Guess type and suggest
+        const firstWord = firstLine.split(/\s/)[0].toLowerCase().replace(/[^a-z]/g,'');
+        const guessedType = TYPE_GUESS[firstWord] || 'chore';
+        const cleanDesc = firstLine.replace(/^[A-Z]/, c => c.toLowerCase()).replace(/\.$/, '');
+        suggested = `${guessedType}: ${cleanDesc}`;
+        score += 5;
+      }
+
+      score = Math.max(0, Math.min(100, score));
+
+      document.getElementById('result').classList.add('active');
+      document.getElementById('scoreVal').textContent = score;
+      const st = document.getElementById('scoreTag');
+      if (score >= 80) { st.textContent = 'Excellent'; st.className = 'tag tag-green'; }
+      else if (score >= 60) { st.textContent = 'Good'; st.className = 'tag tag-green'; }
+      else if (score >= 40) { st.textContent = 'Fair'; st.className = 'tag tag-yellow'; }
+      else { st.textContent = 'Poor'; st.className = 'tag tag-red'; }
+
+      const il = document.getElementById('issuesList'); il.innerHTML = '';
+      const id = document.getElementById('issuesDiv'); id.style.display = issues.length ? 'block' : 'none';
+      issues.forEach(i => { const li = document.createElement('li'); li.textContent = '⚠️ ' + i; il.appendChild(li); });
+
+      const sl = document.getElementById('suggestList'); sl.innerHTML = '';
+      const sd = document.getElementById('suggestDiv'); sd.style.display = suggestions.length ? 'block' : 'none';
+      suggestions.forEach(s => { const li = document.createElement('li'); li.textContent = '💡 ' + s; sl.appendChild(li); });
+
+      const sb = document.getElementById('suggestedBox'); const sm = document.getElementById('suggestedMsg');
+      if (suggested) { sb.style.display = 'block'; sm.textContent = suggested; } else { sb.style.display = 'none'; }
+    }
+  </script>
+</body>
+</html>
