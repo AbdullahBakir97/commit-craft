@@ -26,6 +26,47 @@ _KEYWORD_TYPE_MAP: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\bdoc(s|ument(ed|s)?)?\b", re.IGNORECASE), "docs"),
 ]
 
+# WIP/fixup/squash prefixes that should be stripped before suggesting.
+_WIP_PREFIX_RE = re.compile(
+    r"^(?:wip[!:\s\-]*|fixup[!:\s\-]*|squash[!:\s\-]*|tmp[:\s]*|draft[:\s]*)",
+    re.IGNORECASE,
+)
+
+# Past-tense verbs at the start of a description that should be converted to
+# imperative form. Maps the past-tense form to its imperative replacement.
+_PAST_TO_IMPERATIVE: dict[str, str] = {
+    "fixed": "fix",
+    "fixes": "fix",
+    "added": "add",
+    "adds": "add",
+    "removed": "remove",
+    "removes": "remove",
+    "deleted": "delete",
+    "deletes": "delete",
+    "updated": "update",
+    "updates": "update",
+    "changed": "change",
+    "changes": "change",
+    "refactored": "refactor",
+    "refactors": "refactor",
+    "improved": "improve",
+    "improves": "improve",
+    "implemented": "implement",
+    "implements": "implement",
+    "introduced": "introduce",
+    "introduces": "introduce",
+    "renamed": "rename",
+    "renames": "rename",
+    "replaced": "replace",
+    "replaces": "replace",
+    "moved": "move",
+    "moves": "move",
+    "tested": "test",
+    "tests": "test",
+    "documented": "document",
+    "documents": "document",
+}
+
 
 class MessageSuggester(IMessageSuggester):
     """Suggests improved commit messages based on conventional commit rules.
@@ -52,6 +93,25 @@ class MessageSuggester(IMessageSuggester):
         reasons: list[str] = []
         suggested_desc = description
 
+        # --- Strip WIP/fixup/squash prefixes ---
+        # These should never reach `main` — strip them before any other cleanup
+        # so the resulting suggestion captures the real intent of the commit.
+        wip_match = _WIP_PREFIX_RE.match(suggested_desc)
+        if wip_match:
+            suggested_desc = suggested_desc[wip_match.end() :].lstrip()
+            reasons.append("stripped WIP/fixup prefix")
+
+        # --- Convert past-tense verbs to imperative ---
+        # `Fixed login bug` → `fix login bug`. We match only the first token so
+        # we don't accidentally rewrite past-tense words inside the description.
+        first_word_match = re.match(r"^(\w+)(\s+.*)$", suggested_desc, re.DOTALL)
+        if first_word_match:
+            first_word = first_word_match.group(1).lower()
+            rest = first_word_match.group(2)
+            if first_word in _PAST_TO_IMPERATIVE:
+                suggested_desc = _PAST_TO_IMPERATIVE[first_word] + rest
+                reasons.append(f"converted '{first_word_match.group(1)}' to imperative")
+
         # --- Fix capitalisation ---
         if suggested_desc and suggested_desc[0].isupper():
             suggested_desc = suggested_desc[0].lower() + suggested_desc[1:]
@@ -77,9 +137,17 @@ class MessageSuggester(IMessageSuggester):
                 prefix += "!"
             suggested_line = f"{prefix}: {suggested_desc}"
         else:
-            # Not conventional -- try to guess type
+            # Not conventional -- try to guess type.
             guessed_type = self._guess_type(description)
-            suggested_line = f"{guessed_type}: {suggested_desc}"
+
+            # Avoid producing `fix: fix login bug` when the first word of the
+            # description has already been normalised to the type's verb form.
+            # We strip the leading verb if it matches the guessed type.
+            first_token = suggested_desc.split(maxsplit=1)
+            if first_token and first_token[0].lower() == guessed_type:
+                suggested_desc = first_token[1] if len(first_token) > 1 else ""
+
+            suggested_line = f"{guessed_type}: {suggested_desc}".strip()
             reasons.append(f"added '{guessed_type}' type prefix")
 
         # Append body if present
