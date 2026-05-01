@@ -6,9 +6,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
+# Install dependencies in a builder layer. README.md is referenced by
+# pyproject.toml's `readme = "README.md"` field — must be present at install.
 FROM base AS builder
-
-COPY pyproject.toml ./
+COPY pyproject.toml README.md ./
 RUN pip install --no-cache-dir .
 
 FROM base AS production
