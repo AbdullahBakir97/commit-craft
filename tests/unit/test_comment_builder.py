@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 import pytest
 
 from src.domain.entities import CommitAnalysis, PRAnalysisResult
 from src.domain.enums import CheckConclusion, CommitType, QualityLevel
 from src.generators.comment_builder import CommentBuilder
-
 
 # ------------------------------------------------------------------ #
 # Helpers
@@ -244,7 +245,7 @@ class TestWIPCommits:
 
 
 class TestVoiceQuality:
-    AI_TRIGGERS = [
+    AI_TRIGGERS: ClassVar[list[str]] = [
         "I'd be happy to",
         "hope this helps",
         "feel free to reach out",
@@ -270,9 +271,7 @@ class TestVoiceQuality:
         lowered = comment.lower()
 
         for phrase in self.AI_TRIGGERS:
-            assert phrase.lower() not in lowered, (
-                f"Comment contains AI-style phrase '{phrase}'"
-            )
+            assert phrase.lower() not in lowered, f"Comment contains AI-style phrase '{phrase}'"
 
     def test_summary_uses_specific_numbers_not_vague_words(self, builder):
         commits = [
